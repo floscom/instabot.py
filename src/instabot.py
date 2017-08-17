@@ -17,7 +17,6 @@ import requests
 from unfollow_protocol import unfollow_protocol
 from userinfo import UserInfo
 
-
 class InstaBot:
     """
     Instagram bot v 1.1.0
@@ -273,6 +272,11 @@ class InstaBot:
                 self.login_status = True
                 log_string = '%s login success!' % (self.user_login)
                 self.write_log(log_string)
+                if(slack_url) :
+                    requests.post(
+                        slack_url, data=json.dumps({"text": log_string}),
+                        headers={'Content-Type': 'application/json'}
+                    )
             else:
                 self.login_status = False
                 self.write_log('Login error! Check your login data!')
@@ -281,13 +285,18 @@ class InstaBot:
 
     def logout(self):
         now_time = datetime.datetime.now()
-        log_string = 'Logout: likes - %i, follow - %i, unfollow - %i, comments - %i.' % \
+        logout_string = 'Logout: likes - %i, follow - %i, unfollow - %i, comments - %i.' % \
                      (self.like_counter, self.follow_counter,
                       self.unfollow_counter, self.comments_counter)
-        self.write_log(log_string)
+        self.write_log(logout_string)
         work_time = datetime.datetime.now() - self.bot_start
-        log_string = 'Bot work time: %s' % (work_time)
-        self.write_log(log_string)
+        work_time_string = 'Bot work time: %s' % (work_time)
+        self.write_log(work_time_string)
+        if(slack_url) :
+            requests.post(
+                slack_url, data=json.dumps({"text": logout_string + "\n" + work_time_string}),
+                headers={'Content-Type': 'application/json'}
+            )
 
         try:
             logout_post = {'csrfmiddlewaretoken': self.csrftoken}
